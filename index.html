@@ -303,7 +303,7 @@ See the LICENSE file (GPLv3) for details.
           <ul>
               <li><strong>Controls:</strong> Use [UP] and [DOWN] arrows to hover vertically.</li>
               <li><strong>Objective:</strong> Navigate the tunnel without touching the walls. Distance traveled equals your score.</li>
-              <li><strong>The Trap:</strong> Watch the wall color. <span style="color:#00f3ff">Cyan</span> and <span style="color:#ff0055">Red</span> indicate standard repulsion. <strong>WHITE</strong> indicates an "Attraction Trap".</li>
+              <li><strong>The Trap:</strong> Watch the wall color. <span style="color:#00f3ff; font-weight:bold;">Cyan</span> indicates a positively charged wall and <span style="color:#ff0055; font-weight:bold;">red</span> indicates a negatively charged wall. <span style="color:#ffffff; font-weight:bold;">WHITE</span> indicates an "Attraction Trap"</li> 
           </ul>
 
           <h3>Background Theory: Like-Charge Attraction</h3>
@@ -311,10 +311,10 @@ See the LICENSE file (GPLv3) for details.
               In classical electrostatics, two particles with the same charge sign repel each other according to Coulomb's Law. However, for finite-sized dielectric particles, the physics is far more complex.
           </p>
           <p>
-              When dielectric spheres approach each other, they induce surface charges on one another (polarization). If there is an asymmetry in the system, such as one particle being larger or more highly charged than the other, the stronger electric field from the dominant particle can induce a region of <em>opposite</em> charge on the neighboring surface.
+              When dielectric particles approach each other, they induce surface charges on one another (polarization). If there is an asymmetry in the system, such as one particle being larger or more highly charged than the other, the stronger electric field from the dominant particle can induce a region of <em>opposite</em> charge on the neighboring surface sufficient enough to cause attraction.
           </p>
           <p>
-              This geometry-dependent effect creates a short-range attractive force that can overcome the inherent Coulombic repulsion. In this game, a close proximity to a sufficiently charged wall can simulate this "Like-Charge Attraction," pulling your ship into the wall just when you expect to be repelled.
+              This geometry-dependent effect creates a short-range attractive force that can overcome the inherent Coulombic repulsion in some instances. In this game, getting too close to a positive wall with a high enough charge can trigger like-charge attraction, pulling your ship in right when you expect repulsion. Beware! If a <span style="color:#00f3ff; font-weight:bold;">cyan</span> wall turns <span style="color:#ffffff; font-weight:bold;">WHITE</span>, the interaction regime changes: repulsion becomes attraction.
           </p>
 
           <div class="citation">
