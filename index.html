@@ -135,6 +135,37 @@ See the LICENSE file (GPLv3) for details.
     }
     .name-input:focus { box-shadow: 0 0 30px var(--retro-pink), inset 0 0 10px var(--retro-pink); border-color: #fff; }
     
+    @keyframes neonPulse {
+      0%, 100% { 
+        color: var(--retro-highlight); 
+        text-shadow: 0 0 20px var(--retro-highlight); 
+        opacity: 1; 
+      }
+      50% { 
+        color: var(--retro-pink); 
+        text-shadow: 0 0 5px var(--retro-pink); 
+        opacity: 0.7; 
+      }
+    }
+
+    .input-attention {
+      animation: neonPulse 1.2s infinite alternate;
+      border-color: var(--retro-highlight) !important;
+      letter-spacing: 2px;
+    }
+    
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-10px); }
+      75% { transform: translateX(10px); }
+    }
+
+    .input-error {
+      animation: shake 0.4s ease-in-out;
+      border-color: var(--danger) !important;
+      box-shadow: 0 0 20px var(--danger) !important;
+    }
+    
     /* HIGHSCORES */
     .highscores {
       margin-top: 30px; text-align: center; width: 500px; background: rgba(0,0,0,0.8);
@@ -274,7 +305,7 @@ See the LICENSE file (GPLv3) for details.
         <a href="https://github.com/ericblindgren/dielectric-runner" target="_blank" style="color: inherit; text-decoration: underline; cursor: pointer;">
           https://github.com/ericblindgren/dielectric-runner
         </a> <br>
-        v. 1.0 
+        v. 1.1 
     </div>
   </div>
 
@@ -282,7 +313,15 @@ See the LICENSE file (GPLv3) for details.
     <h1 style="font-size:5rem; margin-bottom: 0;">GAME OVER</h1>
     <p class="subtitle" style="color: var(--danger); text-shadow: 0 0 10px var(--danger);">COLLISION DETECTED</p>
     
+    <div id="goScoreDisplay" style="font-family: 'Orbitron', sans-serif; font-size: 2.5rem; margin-bottom: 10px; letter-spacing: 2px;">
+        FINAL SCORE: <span style="color: var(--accent); text-shadow: 0 0 10px var(--accent);">0</span>
+    </div>
+    
     <div class="highscores">
+	  <div style="font-family: 'Press Start 2P', cursive; color: var(--retro-highlight); text-shadow: 0 0 15px var(--retro-highlight); font-size: 0.9rem; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #333; letter-spacing: 2px; text-transform: uppercase;">
+		GLOBAL RANKING
+	  </div>
+		
       <div class="hs-row header"><span>#</span><span>PILOT</span><span>SCORE</span></div>
       <div id="hsList">
         <div class="hs-row" style="color:#777">CONNECTING TO DATABASE...</div>
@@ -698,7 +737,34 @@ btnCloseInfo.addEventListener('click', () => {
     if (State.paused) { State.active = true; State.paused = false; }
 });
 
-pNameInput.value = localStorage.getItem("ion_runner_name") || "guest";
+const defaultText = "INSERT NAME";
+const savedName = localStorage.getItem("ion_runner_name");
+
+// 1. Initialize Input
+if (savedName && savedName !== "guest") {
+    // If we have a real player name saved, show it normally
+    pNameInput.value = savedName;
+} else {
+    // Otherwise, show the blinking prompt
+    pNameInput.value = defaultText;
+    pNameInput.classList.add('input-attention');
+}
+
+// 2. Clear on Click (Focus)
+pNameInput.addEventListener('focus', () => {
+    if (pNameInput.value === defaultText) {
+        pNameInput.value = "";
+        pNameInput.classList.remove('input-attention');
+    }
+});
+
+// 3. Restore if Left Empty (Blur)
+pNameInput.addEventListener('blur', () => {
+    if (pNameInput.value.trim() === "") {
+        pNameInput.value = defaultText;
+        pNameInput.classList.add('input-attention');
+    }
+});
 
 function handleSpace() {
   if (!overlayInfo.classList.contains('hidden')) return;
@@ -711,6 +777,17 @@ btnRetry.addEventListener('click', resetGame);
 btnNewPilot.addEventListener('click', goToMenu);
 
 function startGame() {
+  const val = pNameInput.value;
+  
+  if (!val || val.trim() === "" || val === defaultText) {
+    // Trigger Shake Effect
+    pNameInput.classList.add('input-error');
+    // Remove class after 400ms so it can be triggered again
+    setTimeout(() => pNameInput.classList.remove('input-error'), 400);
+    pNameInput.focus();
+    return; // STOP THE GAME FROM STARTING
+  }
+
   if (pNameInput) localStorage.setItem("ion_runner_name", pNameInput.value);
   try { if(!Audio.ctx) Audio.init(); Audio.resume(); Audio.startMusic(); } catch (e) {}
   overlayStart.classList.add('hidden');
@@ -827,6 +904,8 @@ function gameOver() {
   
   const finalScore = State.score;
   const pilotName = pNameInput.value.trim() || "pilot";
+  
+  document.getElementById('goScoreDisplay').innerHTML = `FINAL SCORE: <span style="color: var(--accent); text-shadow: 0 0 10px var(--accent);">${finalScore}</span>`;
 
   overlayGO.classList.remove('hidden');
   loadGlobalScores();
