@@ -16,12 +16,12 @@ See the LICENSE file (GPLv3) for details.
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <head>
   <script type="text/javascript">
-        if (screen.width <= 800 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-            window.location.replace("mobile.html"); 
+        if (screen.width > 800 && !/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            window.location.replace("index.html"); 
         }
     </script>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Dielectric Runner</title>
   
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23050510'/%3E%3Cpath d='M2 8c2-4 4-4 6 0s4 4 6 0' fill='none' stroke='%2300f3ff' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
@@ -54,210 +54,321 @@ See the LICENSE file (GPLv3) for details.
     }
     
     html, body {
-      height: 100%; margin: 0;
+      height: 100%; margin: 0; padding: 0;
       background: var(--bg);
       color: var(--text);
       font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      overflow: hidden;
+      overflow: hidden; /* Prevent scrolling */
+      touch-action: none; /* Disable default touch actions */
+      -webkit-user-select: none; /* Disable selection */
+      user-select: none;
     }
     body { display: grid; place-items: center; }
     
     .wrap {
       position: relative;
       width: 100%; height: 100%;
-      display: flex; justify-content: center; align-items: center;
       background: radial-gradient(circle at center, #1a1a2e 0%, #000000 100%);
     }
-    canvas { display: block; box-shadow: 0 0 50px rgba(0, 243, 255, 0.1); }
+    canvas { display: block; width: 100%; height: 100%; }
     
-    /* HUD & UI */
+    /* HUD & UI - MOBILE OPTIMIZED */
     .ui-layer {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
       pointer-events: none;
       display: flex; flex-direction: column; justify-content: space-between;
-      padding: 20px; box-sizing: border-box; z-index: 5;
+      padding: 15px; box-sizing: border-box; z-index: 5;
     }
+    
+    /* Top Bar: Score and Speed split */
     .hud-top {
-      display: flex; gap: 20px; align-items: flex-start;
-      font-size: 14px; text-shadow: 0 0 5px var(--accent);
-      font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+      display: flex; justify-content: space-between; align-items: flex-start;
       width: 100%;
+      font-family: 'Orbitron', sans-serif;
     }
-    .hud-panel {
-      background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1);
-      padding: 8px 16px; border-radius: 4px; backdrop-filter: blur(4px);
+    
+    .hud-stat {
+      display: flex; flex-direction: column; align-items: flex-start;
     }
-    .physics-controls { pointer-events: auto; display: flex; flex-direction: column; gap: 5px; width: 240px; }
-    .slider-row { display: flex; flex-direction: column; }
-    .slider-row label { font-size: 11px; color: #aaa; margin-bottom: 4px; display: flex; justify-content: space-between; }
-    input[type=range] { width: 100%; cursor: pointer; accent-color: var(--accent); }
-    .controls-hint { font-size: 12px; opacity: 0.7; text-align: right; }
-    .tooltip { font-size: 10px; color: #777; margin-top: 4px; line-height: 1.2; }
+    .hud-stat.right { align-items: flex-end; }
+    
+    .hud-label {
+      font-size: 10px; color: #aaa; letter-spacing: 1px; margin-bottom: 2px;
+    }
+    .hud-value {
+      font-size: 24px; font-weight: 900; color: #fff;
+      text-shadow: 0 0 10px var(--accent);
+    }
 
-    .btn-info-corner {
-        pointer-events: auto; position: absolute; right: 20px; top: 20px;
-        background: rgba(0, 0, 0, 0.6); border: 1px solid var(--accent); color: var(--accent);
-        padding: 10px 20px; font-family: 'Orbitron', sans-serif; font-size: 0.8rem;
-        cursor: pointer; text-transform: uppercase; transition: all 0.2s; z-index: 50;
+    /* Force Indicator centered bottom */
+    .hud-force {
+      position: absolute; bottom: 120px; left: 0; right: 0;
+      text-align: center; font-size: 12px; font-family: 'Orbitron', sans-serif;
+      color: var(--text); opacity: 0.8; pointer-events: none;
     }
-    .btn-info-corner:hover { background: var(--accent); color: #000; box-shadow: 0 0 15px var(--accent); }
+
+    /* MOBILE CONTROLS OVERLAY */
+    .mobile-controls {
+      position: absolute; bottom: 20px; left: 0; width: 100%;
+      display: flex; justify-content: space-between; padding: 0 20px;
+      box-sizing: border-box; pointer-events: none; /* Let clicks pass through gaps */
+      z-index: 50;
+    }
+    
+    .control-btn {
+      pointer-events: auto;
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(0, 243, 255, 0.3);
+      display: grid; place-items: center;
+      color: var(--accent); font-size: 24px; font-family: 'Orbitron', sans-serif;
+      backdrop-filter: blur(2px);
+      transition: all 0.1s;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    .control-btn:active, .control-btn.pressed {
+      background: rgba(0, 243, 255, 0.2);
+      border-color: var(--accent);
+      transform: scale(0.95);
+      box-shadow: 0 0 15px var(--accent);
+    }
+    
+    /* Button Placement */
+    .btn-up { position: absolute; bottom: 20px; left: 20px; }
+    .btn-down { position: absolute; bottom: 20px; right: 20px; }
+
+    /* Info Button (moved below credits on mobile) */
+    .btn-info-corner {
+        pointer-events: auto;
+        background: rgba(0, 0, 0, 0.6);
+        border: 1px solid var(--accent);
+        color: var(--accent);
+        padding: 10px 20px;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 0.8rem;
+        cursor: pointer;
+        text-transform: uppercase;
+        z-index: 50;
+        position: static;
+        margin-top: 12px;
+        align-self: center;
+    }
+    a.btn-info-corner { 
+      display: inline-block; 
+      text-decoration: none; 
+      text-align: center; 
+    }
 
     /* OVERLAYS */
     .overlay {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
       background: 
-        linear-gradient(rgba(10, 0, 30, 0.9), rgba(10, 0, 30, 0.95)),
+        linear-gradient(rgba(10, 0, 30, 0.95), rgba(5, 0, 15, 0.98)),
         linear-gradient(0deg, var(--retro-grid) 1px, transparent 1px),
         linear-gradient(90deg, var(--retro-grid) 1px, transparent 1px);
-      background-size: 100% 100%, 40px 40px, 40px 40px;
-      backdrop-filter: blur(5px);
+      background-size: 100% 100%, 30px 30px, 30px 30px;
+      backdrop-filter: blur(8px);
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      pointer-events: auto; transition: opacity 0.3s ease; z-index: 10;
-      box-shadow: inset 0 0 100px rgba(0,0,0,0.9);
+      pointer-events: auto; transition: opacity 0.3s ease; z-index: 100;
+      padding: 20px; box-sizing: border-box;
       font-family: 'Orbitron', sans-serif;
     }
     .hidden { opacity: 0; pointer-events: none; }
     
     .overlay h1 {
-      font-family: 'Press Start 2P', cursive; font-size: 5.0rem; margin: 0 0 30px 0;
-      text-transform: uppercase; line-height: 1.2; text-align: center;
+      font-family: 'Press Start 2P', cursive; font-size: 2.2rem; margin: 0 0 20px 0;
+      text-transform: uppercase; line-height: 1.4; text-align: center;
       background: linear-gradient(to bottom, #fff 0%, var(--retro-highlight) 50%, var(--retro-pink) 51%, var(--retro-purple) 100%);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      filter: drop-shadow(4px 4px 0px #000) drop-shadow(0 0 20px var(--retro-pink));
+      filter: drop-shadow(2px 2px 0px #000) drop-shadow(0 0 10px var(--retro-pink));
       transform: skew(-5deg); animation: flicker 3s infinite;
     }
+    
+    .overlay-scroll-container {
+      width: 100%;
+      display: flex; flex-direction: column; align-items: center;
+      overflow-y: auto;
+      max-height: 100vh;
+      padding-bottom: 50px;
+    }
+
     p.subtitle {
-      font-family: 'Orbitron', sans-serif; font-size: 2.0rem; color: var(--accent);
-      margin-bottom: 30px; letter-spacing: 4px; text-transform: uppercase;
-      text-shadow: 0 0 10px var(--accent); border-top: 2px solid var(--accent);
-      border-bottom: 2px solid var(--accent); padding: 10px 20px; background: rgba(0, 243, 255, 0.1);
+      font-family: 'Orbitron', sans-serif; font-size: 1.0rem; color: var(--accent);
+      margin-bottom: 20px; letter-spacing: 2px; text-transform: uppercase;
+      text-shadow: 0 0 10px var(--accent); border-top: 1px solid var(--accent);
+      border-bottom: 1px solid var(--accent); padding: 5px 10px; background: rgba(0, 243, 255, 0.1);
     }
     
     .name-input {
       background: #000; border: 2px solid var(--retro-pink); color: var(--retro-highlight);
-      padding: 20px; font-family: 'Press Start 2P', cursive; font-size: 1.8rem;
-      margin-bottom: 30px; text-align: center; width: 600px; text-transform: uppercase;
-      box-shadow: 0 0 15px var(--retro-pink); outline: none; transition: all 0.2s; z-index: 20;
+      padding: 15px; font-family: 'Press Start 2P', cursive; font-size: 1.2rem;
+      margin-bottom: 20px; text-align: center; width: 85%; text-transform: uppercase;
+      box-shadow: 0 0 10px var(--retro-pink); outline: none; transition: all 0.2s;
+      border-radius: 4px;
     }
-    .name-input:focus { box-shadow: 0 0 30px var(--retro-pink), inset 0 0 10px var(--retro-pink); border-color: #fff; }
+    .name-input:focus { box-shadow: 0 0 20px var(--retro-pink); border-color: #fff; }
     
     @keyframes neonPulse {
-      0%, 100% { 
-        color: var(--retro-highlight); 
-        text-shadow: 0 0 20px var(--retro-highlight); 
-        opacity: 1; 
-      }
-      50% { 
-        color: var(--retro-pink); 
-        text-shadow: 0 0 5px var(--retro-pink); 
-        opacity: 0.7; 
-      }
+      0%, 100% { color: var(--retro-highlight); text-shadow: 0 0 20px var(--retro-highlight); opacity: 1; }
+      50% { color: var(--retro-pink); text-shadow: 0 0 5px var(--retro-pink); opacity: 0.7; }
     }
-
-    .input-attention {
-      animation: neonPulse 1.2s infinite alternate;
-      border-color: var(--retro-highlight) !important;
-      letter-spacing: 2px;
-    }
+    .input-attention { animation: neonPulse 1.2s infinite alternate; border-color: var(--retro-highlight) !important; }
     
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      25% { transform: translateX(-10px); }
-      75% { transform: translateX(10px); }
-    }
-
-    .input-error {
-      animation: shake 0.4s ease-in-out;
-      border-color: var(--danger) !important;
-      box-shadow: 0 0 20px var(--danger) !important;
-    }
+    @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+    .input-error { animation: shake 0.4s ease-in-out; border-color: var(--danger) !important; box-shadow: 0 0 20px var(--danger) !important; }
     
-    /* HIGHSCORES */
+    /* HIGHSCORES MOBILE */
     .highscores {
-      margin-top: 30px; text-align: center; width: 500px; background: rgba(0,0,0,0.8);
-      border: 2px solid #333; padding: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.8); z-index: 20;
-      max-height: 350px; overflow-y: auto;
+      margin-top: 20px; text-align: center; width: 95%; background: rgba(0,0,0,0.8);
+      border: 1px solid #333; padding: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.8);
+      max-height: 250px; overflow-y: auto; font-size: 0.7rem;
     }
-    .highscores::-webkit-scrollbar { width: 8px; }
-    .highscores::-webkit-scrollbar-track { background: #000; }
-    .highscores::-webkit-scrollbar-thumb { background: var(--retro-pink); border-radius: 4px; }
-
-    .hs-row {
-      display: flex; justify-content: space-between; border-bottom: 1px dotted #444;
-      padding: 8px 10px; font-family: 'Press Start 2P', monospace; font-size: 0.8rem; color: #aaa;
-    }
-    .hs-row:last-child { border-bottom: none; }
-    .hs-row.header { 
-        color: var(--accent); text-shadow: 0 0 5px var(--accent);
-        margin-bottom: 10px; border-bottom: 2px solid var(--accent);
-    }
-    .hs-row span:nth-child(1) { width: 50px; text-align: left; color: var(--retro-highlight); }
-    .hs-row span:nth-child(2) { flex-grow: 1; text-align: left; }
-    .hs-row span:nth-child(3) { width: 100px; text-align: right; color: var(--retro-pink); }
     
-    /* INFO MODAL */
+    /* INFO MODAL MOBILE */
     .info-content {
-        width: 800px; max-height: 80vh; overflow-y: auto;
-        background: rgba(0, 0, 0, 0.85); border: 2px solid var(--accent);
-        padding: 30px; color: #e0e6ff; font-family: "Segoe UI", sans-serif;
-        line-height: 1.6; text-align: left; position: relative; z-index: 30;
+        width: 95%; max-height: 85vh; overflow-y: auto;
+        background: rgba(0, 0, 0, 0.95); border: 1px solid var(--accent);
+        padding: 20px; color: #e0e6ff; font-family: "Segoe UI", sans-serif;
+        line-height: 1.5; text-align: left; position: relative;
         box-shadow: 0 0 30px rgba(0, 243, 255, 0.2);
+        font-size: 0.9rem;
     }
-    .info-content h2 { color: var(--retro-highlight); font-family: 'Orbitron', sans-serif; border-bottom: 1px solid #444; margin-top: 0; }
-    .info-content h3 { color: var(--accent); margin-top: 20px; font-size: 1.1rem; text-transform: uppercase; }
-    .citation {
-        margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.05); 
-        border-left: 3px solid var(--retro-pink); font-size: 0.85rem; color: #aaa;
-    }
-    .close-btn {
-        margin-top: 20px; background: transparent; border: 2px solid var(--retro-pink); color: var(--retro-pink);
-        padding: 10px 30px; cursor: pointer; font-family: 'Orbitron', sans-serif; float: right;
-        transition: all 0.2s;
-    }
-    .close-btn:hover { background: var(--retro-pink); color: #fff; }
+    .info-content h2 { font-size: 1.2rem; }
+    .info-content h3 { font-size: 1.0rem; margin-top: 15px; }
+    .close-btn { width: 100%; padding: 15px; margin-top: 15px; font-size: 1rem; }
 
-    .audio-select-label { font-size: 0.9rem; color: #aaa; margin-bottom: 10px; letter-spacing: 2px; position: relative; z-index: 20; }
-    .audio-options { display: flex; gap: 20px; margin-bottom: 40px; z-index: 20; }
+    .audio-options { display: flex; gap: 10px; margin-bottom: 30px; }
     .btn-audio {
-      background: transparent; border: 1px solid #555; color: #777;
-      padding: 10px 20px; cursor: pointer; font-family: 'Orbitron', sans-serif;
-      font-size: 0.9rem; transition: all 0.3s;
+      padding: 10px 15px; font-size: 0.7rem; flex: 1;
+    }
+
+    .btn-row { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; width: 100%; align-items: center; }
+    
+    button.btn-start {
+      background: rgba(0,0,0,0.8); color: var(--retro-highlight); font-size: 1.2rem;
+      padding: 20px 0; width: 85%; border: 3px solid var(--retro-highlight); 
+      cursor: pointer; text-transform: uppercase; letter-spacing: 3px;
+      box-shadow: 0 0 10px var(--retro-highlight); animation: pulse 1.5s infinite;
+      border-radius: 8px;
+    }
+    
+    button.btn-secondary {
+      background: transparent; color: #fff; font-size: 0.9rem; padding: 15px 0; width: 85%;
+      border: 2px solid #fff; cursor: pointer; text-transform: uppercase;
+      letter-spacing: 2px; opacity: 0.8; border-radius: 8px;
+    }
+    
+    .credits {
+        margin-top: 30px;
+        font-family: "Segoe UI", sans-serif;
+        font-size: 0.8rem;
+        color: rgba(255,255,255,0.6);
+        text-align: center;
+        letter-spacing: 1px;
+        width: 90%;
+        z-index: 20;
+    }
+    .credits strong {
+        color: var(--accent);
+        font-weight: 700;
+        display: block;
+        font-size: 0.9rem;
+        margin-bottom: 4px;
+        text-transform: uppercase;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 10px var(--retro-highlight); transform: scale(1); }
+      50% { box-shadow: 0 0 40px var(--retro-highlight); transform: scale(1.03); }
+    }
+
+    button { font-family: 'Orbitron', sans-serif; position: relative; z-index: 20; }
+
+    .audio-select-label {
+      font-size: 0.9rem;
+      color: #aaa;
+      margin-bottom: 10px;
+      letter-spacing: 2px;
+      position: relative;
+      z-index: 20;
+      text-transform: uppercase;
+    }
+
+    .btn-audio {
+      background: transparent;
+      border: 1px solid #555;
+      color: #777;
+      padding: 10px 15px;            /* mobile-friendly */
+      cursor: pointer;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.8rem;
+      transition: all 0.3s;
+      flex: 1;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-radius: 0;
     }
     .btn-audio.active {
-      border-color: var(--retro-highlight); color: var(--retro-highlight);
+      border-color: var(--retro-highlight);
+      color: var(--retro-highlight);
       box-shadow: 0 0 15px var(--retro-highlight);
     }
 
-    .btn-row { display: flex; gap: 20px; margin-top: 20px; z-index: 20; }
-    button { font-family: 'Orbitron', sans-serif; position: relative; z-index: 20; }
-    
-    /* START / RETRY BUTTON */
     button.btn-start {
-      background: rgba(0,0,0,0.8); color: var(--retro-highlight); font-size: 1.5rem;
-      padding: 20px 50px; border: 3px solid var(--retro-highlight); 
-      cursor: pointer; text-transform: uppercase; letter-spacing: 3px; transition: all 0.2s;
-      box-shadow: 0 0 10px var(--retro-highlight); animation: pulse 1.5s infinite;
+      transition: all 0.2s;
+      border-radius: 0;
     }
-    @keyframes pulse {
-      0% { box-shadow: 0 0 10px var(--retro-highlight); transform: scale(1); }
-      50% { box-shadow: 0 0 30px var(--retro-highlight); transform: scale(1.02); }
-      100% { box-shadow: 0 0 10px var(--retro-highlight); transform: scale(1); }
+    button.btn-start:hover {
+      background: var(--retro-highlight);
+      color: #000;
+      box-shadow: 0 0 50px var(--retro-highlight);
+      animation: none;
     }
-    button.btn-start:hover { background: var(--retro-highlight); color: #000; box-shadow: 0 0 50px var(--retro-highlight); animation: none; }
-    
-    /* SECONDARY BUTTON */
+
     button.btn-secondary {
-      background: transparent; color: #fff; font-size: 1.0rem; padding: 15px 30px;
-      border: 2px solid #fff; cursor: pointer; text-transform: uppercase;
-      letter-spacing: 2px; transition: all 0.2s; font-weight: 700; opacity: 0.8;
+      transition: all 0.2s;
+      font-weight: 700;
+      border-radius: 0;
     }
-    button.btn-secondary:hover { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 15px var(--accent); opacity: 1; }
-    
-    .credits {
-        margin-top: 40px; font-family: "Segoe UI", sans-serif; font-size: 0.8rem;
-        color: rgba(255,255,255,0.6); text-align: center; letter-spacing: 1px; z-index: 20;
+    button.btn-secondary:hover {
+      opacity: 1.0;
+      box-shadow: 0 0 20px rgba(255,255,255,0.25);
+      transform: translateY(-1px);
     }
-    .credits strong { color: var(--accent); font-weight: 700; display: block; font-size: 0.9rem; margin-bottom: 4px; text-transform: uppercase; }
+
+    .name-input { border-radius: 0; }
+
+    .btn-info-corner {
+      position: static;
+      margin-top: 12px;
+      padding: 10px 20px;
+      font-size: 0.8rem;
+      transition: all 0.2s;
+    }
+    .btn-info-corner:hover {
+      background: rgba(0, 243, 255, 0.15);
+      box-shadow: 0 0 20px rgba(0, 243, 255, 0.35);
+      transform: translateY(-1px);
+    }
+
+    .citation {
+      margin-top: 20px;
+      padding: 15px;
+      background: rgba(255,255,255,0.05);
+      border-left: 3px solid var(--retro-pink);
+      font-size: 0.85rem;
+      color: #aaa;
+    }
+
+    .info-content {
+      background: rgba(0, 0, 0, 0.85);
+      border: 2px solid var(--accent);
+      line-height: 1.6;
+    }
+
   </style>
 </head>
 <body>
@@ -267,86 +378,94 @@ See the LICENSE file (GPLv3) for details.
 
   <div class="ui-layer">
     <div class="hud-top">
-      <div class="hud-panel">SCORE: <span id="uiScore">0</span></div>
-      <div class="hud-panel">SPEED: <span id="uiSpeed">0</span></div>
-    
-      <div class="hud-panel physics-controls">
-        <div class="slider-row" style="display:none">
-          <label><span>Dielectric (E<sub>r</sub>)</span> <span id="valPol">1.0</span></label>
-          <input id="sliderPol" type="range" min="0" max="300" value="100">
+        <div class="hud-stat">
+            <span class="hud-label">SCORE</span>
+            <span id="uiScore" class="hud-value">0</span>
         </div>
-        
-        <div class="slider-row">
-           <div style="color:var(--text); font-size: 11px;">NET FORCE (Y): <span id="uiField" style="color:var(--accent)">0</span> N</div>
+        <div class="hud-stat right">
+            <span class="hud-label">SPEED</span>
+            <span id="uiSpeed" class="hud-value">0</span>
         </div>
-      </div>
-      
     </div>
     
-    <div class="controls-hint">
-      [SPACE] Start/Restart &nbsp;|&nbsp; [UP/DOWN] Hover &nbsp;|&nbsp; 
-      <span style="color:#fff; text-shadow:0 0 5px #fff;">WHITE WALL = ATTRACTION TRAP</span>
+    <div class="hud-force">
+        NET FORCE (Y): <span id="uiField" style="color:var(--accent)">0</span> N
+    </div>
+
+    <div class="mobile-controls" id="mobControls">
+        <div class="control-btn btn-up" id="btnUpPad">▲</div>
+        <div class="control-btn btn-down" id="btnDownPad">▼</div>
     </div>
   </div>
 
+  
   <div id="overlayStart" class="overlay">
-    <h1>DIELECTRIC RUNNER</h1>
-    <p class="subtitle">An Electrostatics Game</p>
-    
-    <button id="btnInfo" class="btn-info-corner">ABOUT</button>
-    <input type="text" id="pName" class="name-input" placeholder="INSERT NAME" maxlength="8">
-    
-    <div class="audio-select-label">SOUND SYSTEM</div>
-    <div class="audio-options">
-        <button id="btnAudioRetro" class="btn-audio active">8-BIT CORE</button>
-        <button id="btnAudioSpace" class="btn-audio">DEEP SPACE</button>
-    </div>
+    <div class="overlay-scroll-container">
+        <h1>DIELECTRIC RUNNER</h1>
+        <p class="subtitle">Mobile Edition</p>
 
-    <button class="btn-start" id="btnStart">START</button>
-    
-    <div class="credits">
+        <input type="text" id="pName" class="name-input" placeholder="INSERT NAME" maxlength="8">
+
+        <div class="audio-select-label">SOUND SYSTEM</div>
+        <div class="audio-options">
+            <button id="btnAudioRetro" class="btn-audio active">8-BIT CORE</button>
+            <button id="btnAudioSpace" class="btn-audio">DEEP SPACE</button>
+        </div>
+
+        <button class="btn-start" id="btnStart">START</button>
+
+        <div class="credits">
         <strong>Concept: Eric B. Lindgren</strong>
         Universidade Federal Fluminense<br>
         ericlindgren@id.uff.br<br>
         <a href="https://github.com/ericblindgren/dielectric-runner" target="_blank" style="color: inherit; text-decoration: underline; cursor: pointer;">
           https://github.com/ericblindgren/dielectric-runner
         </a> <br>
-        v. 1.2 
+        v. 1.0m <br> <br>
+        <strong>Collaborator: Gustavo Souza</strong>
+        gsdacosta.24@gmail.com<br> <br>
+    </div>
+        <button id="btnInfo" class="btn-info-corner">ABOUT</button>
+        <a id="btnDesktop" class="btn-info-corner"
+			href="index.html">DESKTOP VERSION</a>
     </div>
   </div>
 
   <div id="overlayGO" class="overlay hidden">
-    <h1 style="font-size:5rem; margin-bottom: 0;">GAME OVER</h1>
-    <p class="subtitle" style="color: var(--danger); text-shadow: 0 0 10px var(--danger);">COLLISION DETECTED</p>
-    
-    <div id="goScoreDisplay" style="font-family: 'Orbitron', sans-serif; font-size: 2.5rem; margin-bottom: 10px; letter-spacing: 2px;">
-        FINAL SCORE: <span style="color: var(--accent); text-shadow: 0 0 10px var(--accent);">0</span>
-    </div>
-    
-    <div class="highscores">
-	  <div style="font-family: 'Press Start 2P', cursive; color: var(--retro-highlight); text-shadow: 0 0 15px var(--retro-highlight); font-size: 0.9rem; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #333; letter-spacing: 2px; text-transform: uppercase;">
-		GLOBAL RANKING
-	  </div>
-		
-      <div class="hs-row header"><span>#</span><span>PILOT</span><span>SCORE</span></div>
-      <div id="hsList">
-        <div class="hs-row" style="color:#777">CONNECTING TO DATABASE...</div>
-      </div>
-    </div>
-    
-    <div class="btn-row">
-        <button class="btn-start" id="btnRetry">RETRY ('SPACE')</button>
-        <button class="btn-secondary" id="btnNewPilot">QUIT</button>
+    <div class="overlay-scroll-container">
+        <h1 style="font-size:3rem; margin-bottom: 0;">GAME OVER</h1>
+        <p class="subtitle" style="color: var(--danger); text-shadow: 0 0 10px var(--danger);">COLLISION DETECTED</p>
+        
+        <div id="goScoreDisplay" style="font-family: 'Orbitron', sans-serif; font-size: 2.0rem; margin-bottom: 10px; letter-spacing: 2px;">
+            SCORE: <span style="color: var(--accent);">0</span>
+        </div>
+        
+        <div class="highscores">
+          <div style="font-family: 'Press Start 2P', cursive; color: var(--retro-highlight); font-size: 0.7rem; margin-bottom: 10px; border-bottom: 1px solid #333;">
+            GLOBAL RANKING
+          </div>
+          <div class="hs-row header" style="display:flex; justify-content:space-between; color:var(--accent); font-size:0.7rem; border-bottom:1px solid var(--accent); margin-bottom:5px;">
+              <span>#</span><span>PILOT</span><span>SCORE</span>
+          </div>
+          <div id="hsList">
+            <div style="color:#777">LOADING...</div>
+          </div>
+        </div>
+        
+        <div class="btn-row">
+            <button class="btn-start" id="btnRetry">RETRY</button>
+            <button class="btn-secondary" id="btnNewPilot">QUIT</button>
+        </div>
     </div>
   </div>
   
-  <div id="overlayInfo" class="overlay hidden" style="z-index: 100;">
+  <div id="overlayInfo" class="overlay hidden" style="z-index: 150;">
       <div class="info-content">
           <h2>MISSION BRIEFING / ABOUT</h2>
           
           <h3>How to Play</h3>
           <ul>
-              <li><strong>Controls:</strong> Use [UP] and [DOWN] arrows to hover vertically.</li>
+              <li><strong>Controls:</strong> Use ▲ / ▼ to hover vertically (or [UP] / [DOWN] keys).</li>
               <li><strong>Objective:</strong> Navigate the tunnel without touching the walls. Distance traveled equals your score.</li>
               <li><strong>The Trap:</strong> Watch the wall color. <span style="color:#00f3ff; font-weight:bold;">Cyan</span> indicates a positively charged wall and <span style="color:#ff0055; font-weight:bold;">red</span> indicates a negatively charged wall. <span style="color:#ffffff; font-weight:bold;">WHITE</span> indicates an "Attraction Trap".</li> 
           </ul>
@@ -417,7 +536,7 @@ try {
   firebase.initializeApp(firebaseConfig);
   analytics = firebase.analytics();
   db = firebase.firestore();
-  console.log("Conectado ao Firebase Global!");
+  console.log("Conectado ao Firebase Mobile!");
 } catch (e) {
   console.warn("Erro ao conectar Firebase:", e);
 }
@@ -425,12 +544,11 @@ try {
 function loadGlobalScores() {
   if (!db) return;
   const hsDiv = document.getElementById("hsList");
-  hsDiv.innerHTML = "<div class='hs-row' style='color:#777'>LOADING GLOBAL DATA...</div>";
+  hsDiv.innerHTML = "<div style='color:#777'>LOADING...</div>";
 
-  // Limit to 20 for free tier safety
   db.collection("scores")
     .orderBy("score", "desc")
-    .limit(20)
+    .limit(20) // Reduced limit for mobile view
     .onSnapshot((snapshot) => {
       let html = "";
       let rank = 1;
@@ -438,17 +556,16 @@ function loadGlobalScores() {
         const data = doc.data();
         const safeName = escapeHtml(data.name);
         html += `
-          <div class="hs-row">
-            <span>#${rank}</span>
-            <span>${safeName}</span>
-            <span>${data.score}</span>
+          <div style="display:flex; justify-content:space-between; border-bottom:1px dotted #444; padding:5px 0; color:#aaa;">
+            <span style="color:var(--retro-highlight); width:30px;">#${rank}</span>
+            <span style="flex-grow:1; text-align:left;">${safeName}</span>
+            <span style="color:var(--retro-pink);">${data.score}</span>
           </div>`;
         rank++;
       });
       hsDiv.innerHTML = html;
     }, (error) => {
-      console.error("Erro leitura:", error);
-      hsDiv.innerHTML = "<div class='hs-row' style='color:#f00'>DB ERROR</div>";
+      hsDiv.innerHTML = "<div style='color:#f00'>DB ERROR</div>";
     });
 }
 
@@ -671,10 +788,7 @@ if (btnRetro && btnSpace) {
     btnSpace.addEventListener('click', () => { Audio.setMode('space'); btnSpace.classList.add('active'); btnRetro.classList.remove('active'); });
 }
 
-window.addEventListener('click', () => {
-   if (!Audio.ctx) { Audio.init(); Audio.resume(); Audio.startMusic(); }
-}, { once: true });
-
+// Physics Constants
 const CFG = {
   W: 1200, H: 800, GRAVITY: 0, THRUST: 600, DRAG: 2.0, SCROLL_V0: 150, SCROLL_ACCEL: 8,
   SEG_LEN: 300, WALL_GAP: 500, K_COULOMB: 80, K_LIKE_BASE: 15.0, DIELECTRIC_MULT: 1.0, 
@@ -689,16 +803,70 @@ const State = {
 const canvas = document.getElementById("c");
 const ctx = canvas.getContext("2d");
 let bounds = { w: 0, h: 0 };
+let PLAYER_OFFSET = 200; // Will be dynamic based on screen width
+
+// Mobile: Resize handles pixel density and aspect ratio
 function resize() {
-  bounds.w = window.innerWidth; bounds.h = window.innerHeight;
-  canvas.width = bounds.w; canvas.height = bounds.h;
+  const dpr = window.devicePixelRatio || 1;
+  bounds.w = window.innerWidth; 
+  bounds.h = window.innerHeight;
+  
+  canvas.width = bounds.w * dpr; 
+  canvas.height = bounds.h * dpr;
+  
+  ctx.scale(dpr, dpr);
+  
+  // Dynamic Player Position: 15% of screen width to allow reaction time on narrow vertical screens
+  PLAYER_OFFSET = Math.min(200, bounds.w * 0.15); 
 }
 window.addEventListener('resize', resize);
 resize();
 
 const Input = { up: false, down: false };
+
+// --- TOUCH CONTROLS (BUTTONS) ---
+const btnUpPad = document.getElementById('btnUpPad');
+const btnDownPad = document.getElementById('btnDownPad');
+
+const handleTouchStart = (dir, btn) => (e) => {
+    e.preventDefault(); // Stop zoom/scroll
+    Input[dir] = true;
+    btn.classList.add('pressed');
+};
+const handleTouchEnd = (dir, btn) => (e) => {
+    e.preventDefault();
+    Input[dir] = false;
+    btn.classList.remove('pressed');
+};
+
+if (btnUpPad) {
+    btnUpPad.addEventListener('touchstart', handleTouchStart('up', btnUpPad), {passive:false});
+    btnUpPad.addEventListener('touchend', handleTouchEnd('up', btnUpPad), {passive:false});
+    // Add Mouse events for desktop testing of mobile view
+    btnUpPad.addEventListener('mousedown', () => Input.up = true);
+    btnUpPad.addEventListener('mouseup', () => Input.up = false);
+}
+if (btnDownPad) {
+    btnDownPad.addEventListener('touchstart', handleTouchStart('down', btnDownPad), {passive:false});
+    btnDownPad.addEventListener('touchend', handleTouchEnd('down', btnDownPad), {passive:false});
+    btnDownPad.addEventListener('mousedown', () => Input.down = true);
+    btnDownPad.addEventListener('mouseup', () => Input.down = false);
+}
+
+// --- SWIPE BACKUP ---
+let touchStartY = 0;
+window.addEventListener('touchstart', e => {
+  if (e.target.tagName === 'CANVAS' || e.target.id === 'overlayStart') {
+     touchStartY = e.touches[0].clientY;
+  }
+}, { passive: true });
+
+window.addEventListener('touchmove', e => {
+    if (e.target.tagName === 'CANVAS') e.preventDefault(); // prevent scroll
+}, { passive: false });
+
+// Keyboard Backup
 window.addEventListener('keydown', e => {
-  if(e.code === 'Space') handleSpace();
   if(e.code === 'ArrowUp' || e.code === 'KeyW') Input.up = true;
   if(e.code === 'ArrowDown' || e.code === 'KeyS') Input.down = true;
 });
@@ -707,55 +875,9 @@ window.addEventListener('keyup', e => {
   if(e.code === 'ArrowDown' || e.code === 'KeyS') Input.down = false;
 });
 
-// ==========================================
-// TOUCH CONTROLS IMPLEMENTATION
-// ==========================================
-let touchStartY = 0;
-const TOUCH_THRESHOLD = 10; // Sensitivity (pixels)
-
-window.addEventListener('touchstart', e => {
-  if (e.target.tagName === 'CANVAS') e.preventDefault();
-
-  // Handle Game Start / Restart on Tap
-  if ((!State.active || State.over) && overlayInfo.classList.contains('hidden')) {
-      Input.up = false;
-      Input.down = false;
-      if (e.target.tagName === 'CANVAS') handleSpace(); 
-      return;
-  }
-
-  // Set Reference Point
-  if (e.touches.length > 0) {
-    touchStartY = e.touches[0].clientY;
-    Input.up = false;
-    Input.down = false;
-  }
-}, { passive: false });
-
-window.addEventListener('touchmove', e => {
-  if (e.target.tagName === 'CANVAS' || State.active) e.preventDefault();
-  if (!State.active || e.touches.length === 0) return;
-
-  const currentY = e.touches[0].clientY;
-  const delta = currentY - touchStartY;
-
-  Input.up = false;
-  Input.down = false;
-
-  if (delta < -TOUCH_THRESHOLD) Input.up = true; // Sliding Up
-  else if (delta > TOUCH_THRESHOLD) Input.down = true; // Sliding Down
-}, { passive: false });
-
-window.addEventListener('touchend', e => {
-  Input.up = false;
-  Input.down = false;
-});
-
 const uiScore = document.getElementById('uiScore');
 const uiSpeed = document.getElementById('uiSpeed');
 const uiField = document.getElementById('uiField');
-const sliderPol = document.getElementById('sliderPol');
-const valPol = document.getElementById('valPol');
 const overlayStart = document.getElementById('overlayStart');
 const overlayGO = document.getElementById('overlayGO');
 const overlayInfo = document.getElementById('overlayInfo');
@@ -766,17 +888,11 @@ const btnInfo = document.getElementById('btnInfo');
 const btnCloseInfo = document.getElementById('btnCloseInfo');
 const pNameInput = document.getElementById('pName');
 
-// NAME FILTER: No Spaces, Lowercase
+// NAME FILTER
 pNameInput.addEventListener('input', function(e) {
   let val = e.target.value;
-  val = val.toLowerCase();
-  val = val.replace(/\s/g, ''); 
+  val = val.toLowerCase().replace(/\s/g, ''); 
   e.target.value = val;
-});
-
-sliderPol.addEventListener('input', (e) => {
-  const val = parseFloat(e.target.value) / 100;
-  CFG.DIELECTRIC_MULT = val; valPol.innerText = val.toFixed(2);
 });
 
 btnInfo.addEventListener('click', () => {
@@ -791,25 +907,19 @@ btnCloseInfo.addEventListener('click', () => {
 const defaultText = "INSERT NAME";
 const savedName = localStorage.getItem("ion_runner_name");
 
-// 1. Initialize Input
 if (savedName && savedName !== "guest") {
-    // If we have a real player name saved, show it normally
     pNameInput.value = savedName;
 } else {
-    // Otherwise, show the blinking prompt
     pNameInput.value = defaultText;
     pNameInput.classList.add('input-attention');
 }
 
-// 2. Clear on Click (Focus)
 pNameInput.addEventListener('focus', () => {
     if (pNameInput.value === defaultText) {
         pNameInput.value = "";
         pNameInput.classList.remove('input-attention');
     }
 });
-
-// 3. Restore if Left Empty (Blur)
 pNameInput.addEventListener('blur', () => {
     if (pNameInput.value.trim() === "") {
         pNameInput.value = defaultText;
@@ -817,30 +927,25 @@ pNameInput.addEventListener('blur', () => {
     }
 });
 
-function handleSpace() {
-  if (!overlayInfo.classList.contains('hidden')) return;
-  // SPACE ONLY RESTARTS GAME
-  if (State.over) resetGame();
-}
-
 btnStart.addEventListener('click', startGame);
 btnRetry.addEventListener('click', resetGame);
 btnNewPilot.addEventListener('click', goToMenu);
 
 function startGame() {
   const val = pNameInput.value;
-  
   if (!val || val.trim() === "" || val === defaultText) {
-    // Trigger Shake Effect
     pNameInput.classList.add('input-error');
-    // Remove class after 400ms so it can be triggered again
     setTimeout(() => pNameInput.classList.remove('input-error'), 400);
-    pNameInput.focus();
-    return; // STOP THE GAME FROM STARTING
+    return;
   }
 
   if (pNameInput) localStorage.setItem("ion_runner_name", pNameInput.value);
-  try { if(!Audio.ctx) Audio.init(); Audio.resume(); Audio.startMusic(); } catch (e) {}
+  
+  // Mobile Audio Unlock
+  if(!Audio.ctx) Audio.init(); 
+  Audio.resume(); 
+  Audio.startMusic();
+  
   overlayStart.classList.add('hidden');
   resetPhysics();
   State.active = true; State.over = false; State.paused = false;
@@ -856,12 +961,7 @@ function resetGame() {
 function goToMenu() {
     overlayGO.classList.add('hidden'); 
     overlayStart.classList.remove('hidden');
-    pNameInput.value = ""; 
-    pNameInput.focus();
-    
-    State.active = false; 
-    State.paused = false;
-    State.over = false;
+    State.active = false; State.paused = false; State.over = false;
 }
 
 function resetPhysics() {
@@ -892,7 +992,8 @@ function update(dt) {
   if (State.segments[0].x + CFG.SEG_LEN < State.distance - 1000) State.segments.shift();
   
   const p = State.player;
-  const currSeg = State.segments.find(s => s.x <= State.distance + 200 && s.x + CFG.SEG_LEN > State.distance + 200) || State.segments[0];
+  // Collision Check uses PLAYER_OFFSET instead of hardcoded 200
+  const currSeg = State.segments.find(s => s.x <= State.distance + PLAYER_OFFSET && s.x + CFG.SEG_LEN > State.distance + PLAYER_OFFSET) || State.segments[0];
   
   let thrust = 0;
   if (Input.up) thrust -= CFG.THRUST;
@@ -923,14 +1024,15 @@ function update(dt) {
   p.vy *= Math.exp(-CFG.DRAG * dt);
   p.y += p.vy * dt;
 
-  State.trail.push({ x: State.distance + 200, y: p.y });
-  if (State.trail.length > 100) State.trail.shift();
+  // Track Trail using PLAYER_OFFSET
+  State.trail.push({ x: State.distance + PLAYER_OFFSET, y: p.y });
+  if (State.trail.length > 80) State.trail.shift(); // Shorter trail for mobile performance
 
   if (Input.up || Input.down) {
     if (Math.random() < 0.6) {
       const exhaustDir = Input.up ? 1 : -1; 
       State.particles.push({
-        x: State.distance + 200, y: p.y, vx: -State.speed - Math.random()*50, 
+        x: State.distance + PLAYER_OFFSET, y: p.y, vx: -State.speed - Math.random()*50, 
         vy: exhaustDir * (100 + Math.random()*100), life: 0.8, color: Input.up ? '#0ff' : '#f0f' 
       });
       Audio.sfxThrust();
@@ -956,7 +1058,7 @@ function gameOver() {
   const finalScore = State.score;
   const pilotName = pNameInput.value.trim() || "pilot";
   
-  document.getElementById('goScoreDisplay').innerHTML = `FINAL SCORE: <span style="color: var(--accent); text-shadow: 0 0 10px var(--accent);">${finalScore}</span>`;
+  document.getElementById('goScoreDisplay').innerHTML = `SCORE: <span style="color: var(--accent); text-shadow: 0 0 10px var(--accent);">${finalScore}</span>`;
 
   overlayGO.classList.remove('hidden');
   loadGlobalScores();
@@ -967,16 +1069,7 @@ function gameOver() {
       score: finalScore,
       date: firebase.firestore.FieldValue.serverTimestamp()
     })
-    .then(() => { console.log("Pontuação salva!"); })
-    .catch((error) => { 
-        // Log técnico no console para debug
-        console.error("Database Write Error:", error); 
-        
-        alert("Error: Score submission failed.");
-        
-        // Volta ao menu para tentar novamente
-        goToMenu();
-    });
+    .catch((error) => { console.error("Database Write Error:", error); });
   }
 }
 
@@ -1007,7 +1100,7 @@ function render() {
   ctx.restore();
 
   // Identify current segment
-  const currentSegment = State.segments.find(s => s.x <= State.distance + 200 && s.x + CFG.SEG_LEN > State.distance + 200) || State.segments[0];
+  const currentSegment = State.segments.find(s => s.x <= State.distance + PLAYER_OFFSET && s.x + CFG.SEG_LEN > State.distance + PLAYER_OFFSET) || State.segments[0];
 
   // Walls
   const wallDepth = 60; 
@@ -1015,10 +1108,11 @@ function render() {
   
   if (State.segments.length > 0) {
       State.segments.forEach(s => {
-        const x1 = (s.x - State.distance) + 200; 
-        const x2 = (s.x + CFG.SEG_LEN - State.distance) + 200;
+        // Use PLAYER_OFFSET for x-positioning to align with dynamic player
+        const x1 = (s.x - State.distance) + PLAYER_OFFSET; 
+        const x2 = (s.x + CFG.SEG_LEN - State.distance) + PLAYER_OFFSET;
         
-        if (x2 < -300 || x1 > bounds.w + 100) return;
+        if (x2 < -100 || x1 > bounds.w + 100) return; // Optimization for mobile culling
         
         const yTop = cy - CFG.WALL_GAP/2;
         const yBot = cy + CFG.WALL_GAP/2;
@@ -1082,6 +1176,7 @@ function render() {
           
           ctx.fill(); ctx.stroke(); ctx.shadowBlur = 0;
           
+          /*
           if (Math.abs(q) > 0) {
             ctx.fillStyle = isLCA ? "#000" : "#fff";
             ctx.font = "bold 20px monospace";
@@ -1089,6 +1184,7 @@ function render() {
             ctx.textBaseline = "middle";
             ctx.fillText(q > 0 ? "+" + q.toFixed(0) : q.toFixed(0), (x1+x2)/2, (yEdge + yFar)/2);
           }
+          */
         };
         drawBlock(yTop, hWall, s.qTop, true);
         drawBlock(yBot, hWall, s.qBot, false);
@@ -1113,23 +1209,6 @@ function render() {
       else ctx.lineTo(sx, sy);
     }
     ctx.stroke();
-    
-    ctx.shadowBlur = 0;
-    ctx.lineWidth = 3;
-    for (let i = 1; i < State.trail.length; i++) {
-      const p1 = State.trail[i-1];
-      const p2 = State.trail[i];
-      const sx1 = (p1.x - State.distance);
-      const sy1 = cy + p1.y;
-      const sx2 = (p2.x - State.distance);
-      const sy2 = cy + p2.y;
-      const alpha = (i / State.trail.length);
-      ctx.beginPath();
-      ctx.moveTo(sx1, sy1);
-      ctx.lineTo(sx2, sy2);
-      ctx.strokeStyle = `rgba(0, 243, 255, ${alpha})`; 
-      ctx.stroke();
-    }
     ctx.restore();
   }
 
@@ -1150,7 +1229,7 @@ function render() {
   ctx.restore();
   
   // PLAYER RENDER
-  const px = 200; 
+  const px = PLAYER_OFFSET; 
   const py = cy + State.player.y;
   
   ctx.save();
@@ -1192,7 +1271,7 @@ function loop() {
   requestAnimationFrame(loop);
 }
 
-// Initial physics setup (so menu isn't empty)
+// Initial physics setup
 resetPhysics();
 loop();
 </script>
