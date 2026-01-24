@@ -787,6 +787,17 @@ const Audio = new AudioSys();
 const btnRetro = document.getElementById('btnAudioRetro');
 const btnSpace = document.getElementById('btnAudioSpace');
 
+const unlockAudio = () => {
+    if (!Audio.ctx) { Audio.init(); Audio.resume(); Audio.startMusic(); }
+    window.removeEventListener('touchstart', unlockAudio);
+    window.removeEventListener('click', unlockAudio);
+    window.removeEventListener('keydown', unlockAudio);
+};
+
+window.addEventListener('touchstart', unlockAudio, { passive: true });
+window.addEventListener('click', unlockAudio);
+window.addEventListener('keydown', unlockAudio);
+
 if (btnRetro && btnSpace) {
     btnRetro.addEventListener('click', () => { Audio.setMode('retro'); btnRetro.classList.add('active'); btnSpace.classList.remove('active'); });
     btnSpace.addEventListener('click', () => { Audio.setMode('space'); btnSpace.classList.add('active'); btnRetro.classList.remove('active'); });
