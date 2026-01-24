@@ -426,8 +426,10 @@ See the LICENSE file (GPLv3) for details.
         gsdacosta.24@gmail.com<br> <br>
     </div>
         <button id="btnInfo" class="btn-info-corner">ABOUT</button>
+        <!--
         <a id="btnDesktop" class="btn-info-corner"
-			href="index.html">DESKTOP VERSION</a>
+			href="index.html">DESKTOP VERSION</a>,
+			-->
     </div>
   </div>
 
@@ -445,8 +447,10 @@ See the LICENSE file (GPLv3) for details.
             GLOBAL RANKING
           </div>
           <div class="hs-row header" style="display:flex; justify-content:space-between; color:var(--accent); font-size:0.7rem; border-bottom:1px solid var(--accent); margin-bottom:5px;">
-              <span>#</span><span>PILOT</span><span>SCORE</span>
-          </div>
+			<span style="width:30px; text-align:left;">#</span>
+			<span style="flex-grow:1; text-align:left;">PILOT</span>
+			<span style="text-align:right;">SCORE</span>
+		  </div>
           <div id="hsList">
             <div style="color:#777">LOADING...</div>
           </div>
