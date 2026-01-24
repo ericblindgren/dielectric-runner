@@ -137,8 +137,8 @@ See the LICENSE file (GPLv3) for details.
     }
     
     /* Button Placement */
-    .btn-up { position: absolute; bottom: 20px; left: 20px; }
-    .btn-down { position: absolute; bottom: 20px; right: 20px; }
+    .btn-up { position: absolute; bottom: 20px; right: 20px; }
+    .btn-down { position: absolute; bottom: 20px; left: 20px; }
 
     /* Info Button (moved below credits on mobile) */
     .btn-info-corner {
@@ -786,6 +786,17 @@ class AudioSys {
 const Audio = new AudioSys();
 const btnRetro = document.getElementById('btnAudioRetro');
 const btnSpace = document.getElementById('btnAudioSpace');
+
+const unlockAudio = () => {
+    if (!Audio.ctx) { Audio.init(); Audio.resume(); Audio.startMusic(); }
+    window.removeEventListener('touchstart', unlockAudio);
+    window.removeEventListener('click', unlockAudio);
+    window.removeEventListener('keydown', unlockAudio);
+};
+
+window.addEventListener('touchstart', unlockAudio, { passive: true });
+window.addEventListener('click', unlockAudio);
+window.addEventListener('keydown', unlockAudio);
 
 if (btnRetro && btnSpace) {
     btnRetro.addEventListener('click', () => { Audio.setMode('retro'); btnRetro.classList.add('active'); btnSpace.classList.remove('active'); });
