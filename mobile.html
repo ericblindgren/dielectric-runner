@@ -868,17 +868,59 @@ if (btnDownPad) {
     btnDownPad.addEventListener('mouseup', () => Input.down = false);
 }
 
-// --- SWIPE BACKUP ---
+// ==========================================
+// HYBRID CONTROL SYSTEM (SWIPE + BUTTONS)
+// ==========================================
 let touchStartY = 0;
+const TOUCH_THRESHOLD = 10; // Sensitivity
+
 window.addEventListener('touchstart', e => {
-  if (e.target.tagName === 'CANVAS' || e.target.id === 'overlayStart') {
-     touchStartY = e.touches[0].clientY;
+  // 1. If touching a button, ignore swipe logic (let button listeners handle it)
+  if (e.target.closest('.control-btn')) return;
+
+  // 2. Prevent default scrolling on canvas
+  if (e.target.tagName === 'CANVAS') e.preventDefault();
+
+  // 3. Handle Game Start / Restart on Tap (Global tap behavior)
+  if ((!State.active || State.over) && overlayInfo.classList.contains('hidden')) {
+      Input.up = false;
+      Input.down = false;
+      // Only restart if tapping the canvas/background, not UI elements
+      if (e.target.tagName === 'CANVAS' || e.target.id === 'overlayStart') {
+          handleSpace(); 
+      }
+      return;
   }
-}, { passive: true });
+
+  // 4. Initialize Swipe Reference
+  if (e.touches.length > 0) {
+    touchStartY = e.touches[0].clientY;
+  }
+}, { passive: false });
 
 window.addEventListener('touchmove', e => {
-    if (e.target.tagName === 'CANVAS') e.preventDefault(); // prevent scroll
+  // 1. If touching a button, ignore swipe logic
+  if (e.target.closest('.control-btn')) return;
+
+  if (e.target.tagName === 'CANVAS' || State.active) e.preventDefault();
+  if (!State.active || e.touches.length === 0) return;
+
+  const currentY = e.touches[0].clientY;
+  const delta = currentY - touchStartY;
+
+  // 2. Apply Swipe Logic
+  Input.up = false;
+  Input.down = false;
+
+  if (delta < -TOUCH_THRESHOLD) Input.up = true;      // Sliding Up
+  else if (delta > TOUCH_THRESHOLD) Input.down = true; // Sliding Down
 }, { passive: false });
+
+window.addEventListener('touchend', e => {
+  if (e.target.closest('.control-btn')) return;
+  Input.up = false;
+  Input.down = false;
+});
 
 // Keyboard Backup
 window.addEventListener('keydown', e => {
